@@ -1,0 +1,12 @@
+.saveButton {
+    text-transform: none;
+    transition: all 0.2s ease-in-out;
+    padding: 5px 15px;
+    width: fit-content;
+
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}

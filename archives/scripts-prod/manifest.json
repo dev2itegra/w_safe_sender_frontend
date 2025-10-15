@@ -1,0 +1,35 @@
+{
+  "widget": {
+    "version": "2.0.2",
+    "interface_version": 2,
+    "init_once": true,
+    "installation": true,
+    "support": {
+      "link": "https://integrator2.ru",
+      "email": "support@integrator2.ru"
+    },
+    "locale": ["ru"],
+    "name": "widget.name",
+    "description": "widget.description",
+    "short_description": "widget.short_description"
+  },
+  "locations": ["settings", "advanced_settings", "everywhere"],
+  "tour": {
+    "is_tour": true,
+    "tour_images": {
+      "ru": [
+        "/images/tour/ru/tour_1.png",
+        "/images/tour/ru/tour_2.png"
+      ]
+    },
+    "tour_description": "tour.tour_description"
+  },
+  "settings": {
+    "phoneNumber": {
+      "name": "settings.phoneNumber",
+      "type": "text",
+      "required": true
+    }
+  },
+  "advanced": { "title": "advanced.title" }
+}

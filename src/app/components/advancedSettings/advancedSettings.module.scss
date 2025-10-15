@@ -1,0 +1,39 @@
+.modules {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 0rem;
+    height: 2.5rem;
+    box-sizing: border-box;
+}
+
+.module {
+    color: var(--palette-text-secondary-dark-green);
+    border-bottom: 0.2rem solid transparent;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    width: fit-content;
+    font-weight: 500;
+    box-sizing: border-box;
+    padding-bottom: 0.35rem;
+    padding: 5px 20px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    text-transform: uppercase;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.875rem;
+    letter-spacing: 0.02857em;
+
+    &.selected {
+        color: var(--base_button_active);
+        border-color: var(--base_button_active);
+    }
+
+    &.disabled {
+        cursor: default;
+        color: gray;
+        user-select: "none",
+    }
+}

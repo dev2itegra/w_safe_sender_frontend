@@ -1,0 +1,28 @@
+{
+  "widget": {
+    "name": "Speech2Text - расшифровка звонков",
+    "description": "Виджет для интеграции Speech2Text и amoCRM.",
+    "short_description": "Speech2Text - расшифровка звонков"
+  },
+  "tour": { "tour_description": "Подробнее" },
+  "settings": {
+    "phoneNumber": "Номер телефона"
+  },
+  "advanced": {
+    "title": "Speech2Text [Интегратор 2.0]"
+  },
+  "locations": {
+    "lcard-0": "Speech2Text",
+    "card_sdk": "Speech2Text"
+  },
+  "dp": {
+    "custom": "Шаблон счёта",
+    "title": "Speech2Text [Интегратор 2.0]"
+  },
+  "salesbot_designer" : {
+    "template_select" : "Выбор шаблона"
+  },
+  "stats" : {
+    "title" : "Speech2Text [Интегратор 2.0]"
+  }
+}

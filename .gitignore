@@ -1,0 +1,14 @@
+/node_modules
+/.vscode
+/dist
+/build
+/scripts/scripts-*.zip
+/scripts/scripts-*.rar
+/scripts/scripts-*/
+
+*.txt
+*.zip
+
+ngrok_start.txt
+package-lock.json
+test.py
