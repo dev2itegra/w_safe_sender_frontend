@@ -1,6 +1,6 @@
 {
   "widget": {
-    "version": "0.0.2",
+    "version": "0.0.12",
     "interface_version": 2,
     "init_once": true,
     "installation": true,
@@ -13,7 +13,7 @@
     "description": "widget.description",
     "short_description": "widget.short_description"
   },
-  "locations": ["settings", "advanced_settings", "everywhere", "widget_page"],
+  "locations": ["settings", "advanced_settings", "everywhere", "widget_page", "digital_pipeline"],
   "tour": {
     "is_tour": true,
     "tour_images": {
@@ -33,6 +33,18 @@
       "type": "text",
       "required": true
     }
+  },
+  "dp": {
+    "settings": {
+      "custom": {
+        "name": "dp.custom",
+        "type": "custom",
+        "required": false
+      }
+    },
+    "action_multiple": false,
+    "webhook_url": "https://int2app.ru/test",
+    "title": "dp.title"
   },
   "advanced": { "title": "advanced.title" }
 }

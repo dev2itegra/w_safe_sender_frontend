@@ -7,7 +7,6 @@ import {
     InputAdornment,
     IconButton,
     CircularProgress,
-    TextField,
     Tooltip,
 } from "@mui/material";
 import { Clear as ClearIcon } from "@mui/icons-material";
@@ -23,10 +22,9 @@ import { DescriptionButtons } from "./buttons.jsx";
 
 
 const SettingsBlock = ({ widget }) => {
-    const [widgetIsActive, setWidgetIsActive] = useState(widget?.params?.active === "Y" ? true : false);
+    const [widgetIsActive, setWidgetIsActive] = useState(widget?.params?.active === "Y");
     const [phoneNumber, setPhoneNumber] = useState(widget?.params?.phoneNumber || "");
     const [isSaving, setIsSaving] = useState(false);
-    const [apiKey, setApiKey] = useState("");
 
     const theme = useThemeDetector();
 
@@ -34,69 +32,21 @@ const SettingsBlock = ({ widget }) => {
         setPhoneNumber(newPhone);
     }, []);
 
-
-    const validateApiKey = (value) => {
-        return true; // TODO validation of api key
-    };
-
-    useEffect(() => {
-        let alive = true;
-        let retryId;
-        const controller = new AbortController();
-
-        const maxRetries = 5;     
-        const baseDelay = 2000;        
-        const maxDelay = 30000;         
-
-        const shouldRetry = (error) => {
-            if (controller.signal.aborted) return false;
-            const status = error?.response?.status;
-            return !status || status >= 500;
-        };
-
-        const load = async (attempt = 0) => {
-            try {
-                const { data } = await baseApiInstance.get("/widget/activation", {
-                    signal: controller.signal     
-                });
-                if (!alive) return;
-
-                const storedApiKey = data?.wazzup_api_key ?? "";
-                setApiKey(storedApiKey);
-            } catch (err) {
-                if (!alive) return;
-
-                if (!shouldRetry(err) || attempt >= maxRetries) {
-                    console.error("Activation load failed:", err);
-                    sendAmoErrorNotification("Повторите попытку позже!");
-                    return;
-                }
-
-                const delay = Math.min(maxDelay, baseDelay * 2 ** attempt);
-                retryId = setTimeout(() => load(attempt + 1), delay);
-            }
-        };
-
-        load();
-
-        return () => {
-            alive = false;
-            controller.abort(); 
-            clearTimeout(retryId);       
-        };
-    }, []);
+    const isPhoneValid = matchIsValidTel(phoneNumber);
 
     const isDisabled = useCallback(() => {
         return (
-            !validateApiKey(apiKey) ||
-            isSaving
+            isSaving ||
+            !isPhoneValid ||  
+            !phoneNumber.trim() 
         );
-    }, [apiKey, isSaving]);
-
+    }, [isSaving, isPhoneValid, phoneNumber]);
 
     const handleSubmit = useCallback(
         async (e) => {
             e.preventDefault();
+
+            if (!isPhoneValid) return; 
 
             setIsSaving(true);
             try {
@@ -118,34 +68,27 @@ const SettingsBlock = ({ widget }) => {
 
                 const { data } = await amoApiInstance.post("/ajax/widgets/edit", body);
                     
-                if ( data.response.status == "ok" ) {
-                    const response = await baseApiInstance.post(
-                        "/widget/activation", 
-                        {
-                            ts_phone_number: phoneNumber,
-                            wazzup_api_key: apiKey,
-                        }
-                    );
-                    if ( response.status === 200) {
+                if (data.response.status === "ok") {
+                    const response = await baseApiInstance.post("/widget/activation", {
+                        phone_number: phoneNumber,
+                    });
+                    if (response.status === 200) {
                         const redirectUrl = `/settings/widgets/${widgetCode}`;
-                        window.open(redirectUrl, "_self");                        
+                        window.open(redirectUrl, "_self");
                         return;
                     }
                 } else {
-                    throw new Error("Unsuccessful amo widget settings editing")
+                    throw new Error("Unsuccessful amo widget settings editing");
                 }
 
             } catch (error) {
                 console.error("Widget activation error", error);
-                sendAmoErrorNotification(
-                    "Ошибка активации виджета",
-                )
-                
+                sendAmoErrorNotification("Ошибка активации виджета");
             } finally {
                 setIsSaving(false);
             }
         },
-        [phoneNumber, apiKey, widget]
+        [phoneNumber, widget, isPhoneValid]
     );
 
     return (
@@ -172,6 +115,12 @@ const SettingsBlock = ({ widget }) => {
                         variant="outlined"
                         name="phoneNumber"
                         label="Номер телефона"
+                        error={!!phoneNumber && !isPhoneValid}  // подсвечиваем невалидный ввод
+                        // helperText={
+                        //     !!phoneNumber && !isPhoneValid
+                        //         ? "Введите корректный номер телефона"
+                        //         : ""
+                        // }
                         slotProps={{
                             input: {
                                 endAdornment: (
@@ -201,50 +150,6 @@ const SettingsBlock = ({ widget }) => {
                         }}
                     />
 
-
-                    <TextField
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        size="small"
-                        variant="outlined"
-                        name="api_key"
-                        label="API ключ WAZZUP"
-                        type="text"
-                        slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <HintAdornment
-                                        title={
-                                            "Укажите WAZZUP API ключ."
-                                        }
-                                        ariaLabel="подсказка по API ключу"
-                                        theme={theme}
-                                    />
-                                ),
-                            },
-                        }}
-                        sx={{
-                            backgroundColor: theme === "dark" ? "#153043" : "rgba(255, 255, 255)",
-                            marginBottom: "5px",
-                            "& .MuiOutlinedInput-root": {
-                                color: theme === "dark" ? "rgba(255, 255, 255)" : "rgba(0, 0, 0, 0.87)",
-                                "& fieldset": { borderColor: "var(--palette-border-default)" },
-                                "&:hover fieldset": { borderColor: theme === "dark" ? "#ffffff" : "#212121" },
-                                "&.Mui-focused fieldset": { borderColor: theme === "dark" ? "#90caf9" : "#1976d2" },
-                            },
-                            "& .MuiInputLabel-root": {
-                                color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
-                                "&.Mui-focused": { color: theme === "dark" ? "#90caf9" : "#1976d2" },
-                            },
-                            "& .MuiOutlinedInput-input::placeholder": { opacity: 0.6 },
-                            "& .MuiInputBase-input.Mui-disabled": {
-                                WebkitTextFillColor: theme === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.4)",
-                                color: theme === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.4)",
-                                opacity: 1,
-                            },
-                        }}
-                    />
-
                     <Button
                         type="submit"
                         variant="outlined"
@@ -253,13 +158,17 @@ const SettingsBlock = ({ widget }) => {
                         startIcon={isSaving ? <CircularProgress size="20px" /> : null}
                         sx={{
                             color: theme === "dark" ? "#90caf9" : "#1976d2",
-                            "&:disabled" : {
-                                color: theme === "dark"? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.26)",
-                                border: theme === "dark"? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(0, 0, 0, 0.12)",
-                            }
+                            "&:disabled": {
+                                color: theme === "dark"
+                                    ? "rgba(255, 255, 255, 0.3)"
+                                    : "rgba(0, 0, 0, 0.26)",
+                                border: theme === "dark"
+                                    ? "1px solid rgba(255, 255, 255, 0.12)"
+                                    : "1px solid rgba(0, 0, 0, 0.12)",
+                            },
                         }}
                     >
-                        {widgetIsActive ? "Сохранить" : "Активировать"}
+                        Настроить...
                     </Button>
                 </Box>
             </form>
@@ -267,6 +176,180 @@ const SettingsBlock = ({ widget }) => {
         </>
     );
 };
+
+
+
+// import React, { useState, useEffect, useCallback } from "react";
+// import { MuiTelInput, matchIsValidTel } from "mui-tel-input";
+
+// import {
+//     Box,
+//     Button,
+//     InputAdornment,
+//     IconButton,
+//     CircularProgress,
+//     TextField,
+//     Tooltip,
+// } from "@mui/material";
+// import { Clear as ClearIcon } from "@mui/icons-material";
+// import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+
+// import styles from "./SettingsBlock.module.scss";
+// import { baseApiInstance } from "../../services/requests/axios.instance.js";
+// import { amoApiInstance } from "../../services/requests/amoAPI.js";
+// import { widgetCode, widgetIntegrationId } from "../../config.js";
+// import { sendAmoErrorNotification } from "../../services/amoNotification/sendNotification.js";
+// import { useThemeDetector } from "../../services/themes/themeDetector.js";
+// import { DescriptionButtons } from "./buttons.jsx";
+
+
+// const SettingsBlock = ({ widget }) => {
+//     const [widgetIsActive, setWidgetIsActive] = useState(widget?.params?.active === "Y" ? true : false);
+//     const [phoneNumber, setPhoneNumber] = useState(widget?.params?.phoneNumber || "");
+//     const [isSaving, setIsSaving] = useState(false);
+
+//     const theme = useThemeDetector();
+
+//     const handleChange = useCallback((newPhone) => {
+//         setPhoneNumber(newPhone);
+//     }, []);
+
+
+//     const isDisabled = useCallback(() => {
+//         return (
+//             isSaving
+//         );
+//     }, [isSaving]);
+
+
+//     const handleSubmit = useCallback(
+//         async (e) => {
+//             e.preventDefault();
+
+//             setIsSaving(true);
+//             try {
+//                 widget.params.phoneNumber = phoneNumber;
+                
+//                 const widgetSettings = widget.get_settings();
+                
+//                 const body = {
+//                     action: "edit",
+//                     id: widgetSettings.id,
+//                     code: widgetCode,
+//                     widget_active: "Y",
+//                     settings: {
+//                         phoneNumber,
+//                     },
+//                     is_widget_state_action: 0,
+//                     is_marketplace_request: 1,
+//                 };
+
+//                 const { data } = await amoApiInstance.post("/ajax/widgets/edit", body);
+                    
+//                 if ( data.response.status == "ok" ) {
+//                     const response = await baseApiInstance.post(
+//                         "/widget/activation", 
+//                         {
+//                             phone_number: phoneNumber,
+//                         }
+//                     );
+//                     if ( response.status === 200) {
+//                         const redirectUrl = `/settings/widgets/${widgetCode}`;
+//                         window.open(redirectUrl, "_self");                        
+//                         return;
+//                     }
+//                 } else {
+//                     throw new Error("Unsuccessful amo widget settings editing")
+//                 }
+
+//             } catch (error) {
+//                 console.error("Widget activation error", error);
+//                 sendAmoErrorNotification(
+//                     "Ошибка активации виджета",
+//                 )
+                
+//             } finally {
+//                 setIsSaving(false);
+//             }
+//         },
+//         [phoneNumber, widget]
+//     );
+
+//     return (
+//         <>
+//             <DescriptionButtons theme={theme} />
+//             <form onSubmit={handleSubmit}>
+//                 <Box
+//                     sx={{
+//                         display: "flex",
+//                         flexDirection: "column",
+//                         rowGap: "1rem",
+//                         borderRadius: "5px",
+//                         padding: "20px",
+//                         border: "1px solid var(--palette-border-default)",
+//                         backgroundColor: "var(--palette-background-default)",
+//                     }}
+//                 >
+//                     <MuiTelInput
+//                         value={phoneNumber}
+//                         onChange={handleChange}
+//                         defaultCountry="RU"
+//                         preferredCountries={["RU"]}
+//                         size="small"
+//                         variant="outlined"
+//                         name="phoneNumber"
+//                         label="Номер телефона"
+//                         slotProps={{
+//                             input: {
+//                                 endAdornment: (
+//                                     <HintAdornment
+//                                         title="Этот номер будет использоваться для связи с вами в случае возникновения проблем."
+//                                         ariaLabel="подсказка по номеру техподдержки"
+//                                         theme={theme}
+//                                     />
+//                                 ),
+//                             },
+//                         }}
+//                         sx={{
+//                             backgroundColor: theme === "dark" ? "#153043" : "rgba(255, 255, 255)",
+//                             marginBottom: "5px",
+//                             "& .MuiOutlinedInput-root": {
+//                                 color: theme === "dark" ? "rgba(255, 255, 255)" : "rgba(0, 0, 0, 0.87)",
+//                                 "& fieldset": { borderColor: "var(--palette-border-default)" },
+//                                 "&:hover fieldset": { borderColor: theme === "dark" ? "#ffffff" : "#212121" },
+//                                 "&.Mui-focused fieldset": { borderColor: theme === "dark" ? "#90caf9" : "#1976d2" },
+//                             },
+//                             "& .MuiInputLabel-root": {
+//                                 color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+//                                 "&.Mui-focused": { color: theme === "dark" ? "#90caf9" : "#1976d2" },
+//                             },
+//                             "& .MuiOutlinedInput-input::placeholder": { color: "var(--palette-border-default)", opacity: 1 },
+//                             "& .MuiSvgIcon-root": { fill: theme === "dark" ? "rgb(255, 255, 255)" : "rgba(0, 0, 0, 0.54)" },
+//                         }}
+//                     />
+
+//                     <Button
+//                         type="submit"
+//                         variant="outlined"
+//                         disabled={isDisabled()}
+//                         className={styles.saveButton}
+//                         startIcon={isSaving ? <CircularProgress size="20px" /> : null}
+//                         sx={{
+//                             color: theme === "dark" ? "#90caf9" : "#1976d2",
+//                             "&:disabled" : {
+//                                 color: theme === "dark"? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.26)",
+//                                 border: theme === "dark"? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(0, 0, 0, 0.12)",
+//                             }
+//                         }}
+//                     >
+//                         Настроить...
+//                     </Button>
+//                 </Box>
+//             </form>
+//             <WidgetSettingsFooter accountId={window.APP?.constant?.("account")?.id} />
+//         </>
+//     );
+// };
 
 
 function HintAdornment({ title, ariaLabel, theme }) {

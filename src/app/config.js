@@ -1,5 +1,5 @@
 // DEV
-const baseUrl = "e746e7814de1.ngrok.app";
+const baseUrl = "upwardly-teeming-antelope.cloudpub.ru";
 
 export const apiBaseUrl = `https://${baseUrl}/api/v1`; 
 export const widgetIntegrationId = "cb80178e-c8f5-43f7-93ed-3d7722077541";

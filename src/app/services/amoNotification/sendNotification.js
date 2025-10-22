@@ -1,7 +1,7 @@
 export const sendAmoNotification = (
     text,
     type = "success",
-    header = "Speech2Text [Integrator2]",
+    header = "Рассылка [Integrator2]",
 ) => {
     if (!text) {
         throw new Error("Notification text is undefined");
@@ -19,7 +19,7 @@ export const sendAmoNotification = (
 
 export const sendAmoErrorNotification = (
     text,
-    header = "Speech2Text [Integrator2]",
+    header = "Рассылка [Integrator2]",
 ) => {
     sendAmoNotification(
         text,
@@ -31,7 +31,7 @@ export const sendAmoErrorNotification = (
 
 export const sendAmoSuccessNotification = (
     text,
-    header = "Speech2Text [Integrator2]",
+    header = "Рассылка [Integrator2]",
 ) => {
     sendAmoNotification(
         text,

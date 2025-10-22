@@ -14,8 +14,9 @@ export default function AddServiceButton({disabled, onClick}) {
                     border: "none",
                     background: "var(--button_blue)",
                     borderRadius: "4px",
-                    color: "var(--palette-text-default)",
+                    color: "var(--palette-background-default)",
                     letterSpacing: "0.01071em",
+                    p: "4px 10px",
                 }}
                 disabled={disabled}
                 onClick={onClick}

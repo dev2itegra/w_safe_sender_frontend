@@ -3,26 +3,52 @@ import { Box } from "@mui/material";
 
 import ServicesTable from "./servicesTable";
 import AddServiceButton from "./addServiceButton";
+import ServiceSettings from "./serviceSettings";
+import ServicesLoading from "./loading";
+import { baseApiInstance } from "../../../../services/requests/axios.instance";
+import { sendAmoErrorNotification } from "../../../../services/amoNotification/sendNotification";
 
 
 export default function ServicesSettings({  }) {
-    const includedServices = [
+    const [isLoading, setIsLoading] = useState(true);
 
-    ];
+    const [includedServices, setIncludedServices] = useState([]);
+
+    useEffect(() => {
+        const loadServices = async () => {
+            try {
+                const response = await baseApiInstance.get("/services/");
+                
+                let services = [];
+                if ( response.status === 200 ) {
+                    services = response.data.services;
+                }
+            
+                setIncludedServices(services);
+
+
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        loadServices();
+    }, []);
+    
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isNewServiceCreating, setIsNewServiceCreating] = useState(false);
     
     const [serviceType, setServiceType] = useState("wazzup");
-    const [serviceName, setServiceName] = useState("[WAZZUP] ");
+    const [serviceName, setServiceName] = useState("");
 
-    useEffect(() => {
-        if (!serviceName) {
-            if (serviceType === "wazzup") {
-                setServiceName("[WAZZUP] ");
-            }
-        }
-    }, [serviceType]);
+    const [openedServiceId, setOpenedServiceId] = useState(null);
+
+    const onOpenService = useCallback((id) => {
+        setOpenedServiceId(id);
+    }, [openedServiceId]);
+
 
     const onModalClose = useCallback(() => {
         setIsModalOpen(false);
@@ -33,13 +59,50 @@ export default function ServicesSettings({  }) {
         try {
             setIsNewServiceCreating(true);
 
-            console.log("Service creating", serviceType, serviceName);
+            if ( serviceType === "wazzup" ) {
+                const response = await baseApiInstance.post(
+                    "/services/wazzup", 
+                    {
+                        "name": serviceName,
+                    }
+                );
+
+                const createdServiceId = response.data.id;
+
+                const prevServices = JSON.parse(JSON.stringify(includedServices)); 
+                prevServices.push(
+                    {
+                        id: createdServiceId,
+                        name: response.data.name,
+                        subscription: {
+                            is_trial: true,
+                            end_date: "2025-10-16",
+                        },
+                        is_token_linked: false,
+                    }
+                );
+                setIncludedServices(prevServices);
+
+                onOpenService(createdServiceId);
+
+
+            } else {
+                throw new Error(`invalid service "${serviceType}"`);
+            }
+
         } catch (error) {
             console.error(error);
+            sendAmoErrorNotification("Ошибка подключения сервиса");
         } finally {
+            setIsModalOpen(false);
             setIsNewServiceCreating(false);
         }
     }, [serviceType, serviceName]);
+
+
+    const moveBackFromService = useCallback(() => {
+        setOpenedServiceId(null);
+    }, []);
 
     
     return (
@@ -49,35 +112,47 @@ export default function ServicesSettings({  }) {
                 flexDirection: "column",
                 boxSizing: "border-box",
             }}
-        >
-            <Box
-                sx={{
-                    boxSizing: "border-box",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.75rem",
-                }}
-            >
-                <ServicesTable 
-                    services={includedServices}
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                    isNewServiceCreating={isNewServiceCreating}
-                    serviceType={serviceType}
-                    setServiceType={setServiceType}
-                    serviceName={serviceName}
-                    setServiceName={setServiceName}
-                    onModalClose={onModalClose}
-                    onNewServiceCreate={onNewServiceCreate}
-                /> 
-                {
-                    includedServices.length !== 0 && 
-                    <AddServiceButton 
-                        disabled={false}
-                        onClick={onNewServiceCreate}
-                    />
-                }
-            </Box>
+        >   
+            {
+                isLoading ?
+                    <ServicesLoading />
+                :
+                    openedServiceId? 
+                        <ServiceSettings
+                            serviceId={openedServiceId}
+                            onMoveBack={moveBackFromService}
+                        />
+                    :
+                        <Box
+                            sx={{
+                                boxSizing: "border-box",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.75rem",
+                            }}
+                        >
+                            <ServicesTable 
+                                services={includedServices}
+                                isModalOpen={isModalOpen}
+                                setIsModalOpen={setIsModalOpen}
+                                isNewServiceCreating={isNewServiceCreating}
+                                serviceType={serviceType}
+                                setServiceType={setServiceType}
+                                serviceName={serviceName}
+                                setServiceName={setServiceName}
+                                onModalClose={onModalClose}
+                                onNewServiceCreate={onNewServiceCreate}
+                                onOpenService={onOpenService}
+                            /> 
+                            {
+                                includedServices.length !== 0 && 
+                                <AddServiceButton 
+                                    disabled={false}
+                                    onClick={() => setIsModalOpen(true)}
+                                />
+                            }
+                        </Box>
+            }
         </Box>
     );
 } 

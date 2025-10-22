@@ -1,0 +1,81 @@
+.fieldTitle {
+    font-weight: 500;
+}
+
+.noTemplatesText {
+    font-weight: 600;
+    letter-spacing: 0.02rem;
+    line-height: 1.1;
+    color: var(--color-begonia);
+}
+
+.noTemplatesText a {
+    color: inherit;
+    line-height: inherit;
+    text-decoration: none;
+    text-transform: capitalize;
+    color: var(--button_blue);
+    border-bottom: 1px solid currentColor;
+}
+
+.templateSelectWrapper {
+    position: relative;
+    width: 50%;
+}
+.templateSelect {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 30px 7px 8px;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--palette-text-primary);
+    border: 1px solid var(--palette-border-primary);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.templateSelectWrapper::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - 2px);
+    right: 12px;
+    width: 6px;
+    height: 6px;
+    transform: translateY(-50%) rotate(45deg);
+    pointer-events: none;
+
+    border-right: 1px solid var(--palette-text-primary);
+    border-bottom: 1px solid var(--palette-text-primary);
+}
+
+
+.templateSelectUnselected {
+    color: var(--palette-text-secondary-light);
+}
+
+.templateSelect option {
+    background-color: var(--palette-background-primary);
+    color: var(--palette-text-primary) !important;
+}
+.templateSelect option:hover {
+    background-color: var(--palette-background-default);
+}
+.templateSelect option:checked,
+.templateSelect option:focus,
+.templateSelect option:active {
+    background-color: var(--palette-background-default);
+    color: var(--palette-text-primary);
+}
+
+.orItem {
+    color: var(--palette-border-default);
+    width: 10%;
+    text-align: center;
+}
+
+.unselectedWarning {
+    color: #F26E6E;
+    font-weight: 500;
+}

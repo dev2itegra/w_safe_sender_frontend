@@ -18,6 +18,7 @@ export default function ServicesTable(
         setServiceName,
         onModalClose,
         onNewServiceCreate,
+        onOpenService,
     }
 ) {
     const isEmpty = services.length === 0;
@@ -26,11 +27,11 @@ export default function ServicesTable(
         <>
             <Box
                 sx={{
-                    botSizing: "border-box",
+                    boxSizing: "border-box",
                     width: "100%",
                     display: "grid",
                     gap: "1px",
-                    gridTemplateColumns: "1fr 8fr 1fr",
+                    gridTemplateColumns: "20fr 55fr 25fr",
                     backgroundColor: "var(--palette-border-primary)",
                 }}
             >   
@@ -49,6 +50,7 @@ export default function ServicesTable(
                             <TableService
                                 service={service}
                                 key={key}
+                                onOpenService={onOpenService}
                             />
                         )
                     })
@@ -69,7 +71,7 @@ export default function ServicesTable(
 }
 
 
-function TableHeaderCell({ name }) {
+function  TableHeaderCell({ name }) {
     return (
         <Box
             sx={{
