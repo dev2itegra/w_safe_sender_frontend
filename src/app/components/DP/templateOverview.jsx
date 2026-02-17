@@ -26,13 +26,13 @@ function formatWeekdays(days = []) {
     .join(", ");
 }
 
-export default function TemplateOverview({ template }) {
+export default function TemplateOverview({ template, channelTransport, channelName }) {
     const header = useMemo(() => {
         if (!template) return "";
         const interval = Number(template.interval) || 0;
-        const channel = template?.channel?.name ? ` через ${template.channel.name}` : "";
+        const channel = channelName && channelTransport? ` через ${channelTransport.charAt(0).toUpperCase() + channelTransport.slice(1)} ${channelName}` : "";
         return `Рассылка с интервалом ${interval} ${minutesLabel(interval)}${channel}`;
-    }, [template]);
+    }, [template, channelTransport, channelName]);
 
     const lines = useMemo(() => {
         if (!template || !Array.isArray(template.send_timings) || !template.send_timings.length) {

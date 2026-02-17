@@ -10,10 +10,12 @@ import {
 } from "@mui/material";
 
 import WazzupLogo from "./logos/wazzup";
+import TelegramIcon from '@mui/icons-material/Telegram';
 
 
 const SERVICES = {
     wazzup: { label: "Wazzup", Icon: WazzupLogo },
+    pyrogram: { label: "Телеграм", Icon: TelegramIcon },
 };
 
 

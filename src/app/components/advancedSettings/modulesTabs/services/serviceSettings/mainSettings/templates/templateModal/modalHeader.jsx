@@ -55,6 +55,7 @@ export default function ModalHeader({ handleClose, headerName }) {
                             alignItems: "center",
                             lineHeight: 1.75,
                         }}
+                        href="https://integrator2.ru/widjety-amocrm-wasend"
                     >
                         <InfoOutlineIcon sx={{fontSize: "1.5rem"}} />
                     </a>   

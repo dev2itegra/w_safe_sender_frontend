@@ -3,14 +3,15 @@ import { Box } from "@mui/material";
 
 export function DescriptionButtons({ theme }) {
     const handleContactClick = () => {
+        const accountId = APP.constant("account").id;
         window.open(
-            `https://t.me/speechtwotext`,
+            `https://t.me/integrator2?text=widjet:sender,id=${accountId}`,
             "_blank"
         );
     };
 
     const handleInstructionClick = () => {
-        window.open("https://speech2text.ru/integration/amocrm", "_blank");
+        window.open("https://integrator2.ru/widjety-amocrm-wasend", "_blank");
     };
 
     return (

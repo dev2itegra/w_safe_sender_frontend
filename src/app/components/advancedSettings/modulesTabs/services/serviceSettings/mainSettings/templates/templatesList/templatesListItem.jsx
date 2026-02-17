@@ -14,6 +14,7 @@ export default function TemplatesListItem(
         isLast = false,
         onEditTemplate,
         serviceChannels,
+        serviceType,
     }
 ) {    
     const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +33,6 @@ export default function TemplatesListItem(
         setIsEditingProcessing(false);
         setIsEditing(false);
     }, []);
-
 
     return (
         <>
@@ -55,7 +55,7 @@ export default function TemplatesListItem(
                         pl: "1rem",
                         pr: "0.5rem",
                     }}
-                >
+                >   
                     <TemplateChannel channel={template.channel} serviceChannels={serviceChannels} />
                 </Box>
                 <Box
@@ -103,6 +103,7 @@ export default function TemplatesListItem(
                 headerName="Редактирование шаблона"
                 actionName="Сохранить"
                 serviceChannels={serviceChannels}
+                serviceType={serviceType}
             />
         </> 
     );
@@ -136,12 +137,12 @@ function TemplateName({ name }) {
 function TemplateChannel({ channel, serviceChannels }) {
 
     const getChannelIcon = useCallback(() => {
-        const channelData = serviceChannels.find((c) => c.id === channel);
+        const channelData = serviceChannels.find((c) => c.channelId === channel);
         if ( channelData ) {
-            if ( channelData.type === "telegram" ) {
+            if ( channelData.transport === "telegram" ) {
                 return <TelegramIcon sx={{fontSize: "1.5rem", color: "inherit"}} />
             }
-            if ( channelData.type === "whatsapp" ) {
+            if ( channelData.transport === "whatsapp" ) {
                 return <WhatsAppIcon sx={{fontSize: "1.5rem", color: "inherit"}} />
             }
         }

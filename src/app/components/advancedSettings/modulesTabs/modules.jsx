@@ -1,7 +1,7 @@
 import React from "react";
 
-// import { Analytics } from "../../analytics/analytics";
 import ServicesSettings from "./services";
+import Analytics from "./analytics";
 
 
 export const modules = [
@@ -14,9 +14,8 @@ export const modules = [
         isLink: true,
         getLink: (ctx) => ctx.instruction.link,
     },
-    // {
-    //     name: "Аналитика",
-    //     render: (ctx) => <div>Аналитика</div>,
-    //     // render: (ctx) => <Analytics {...ctx.analytics} />,
-    // },
+    {
+        name: "Аналитика",
+        render: (ctx) => <Analytics {...ctx.analytics} />,
+    },
 ];

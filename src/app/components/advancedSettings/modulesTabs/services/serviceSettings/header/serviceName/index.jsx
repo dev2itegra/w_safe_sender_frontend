@@ -3,12 +3,13 @@ import {
     Box, 
     Typography, 
     IconButton, 
-    TextField 
+    TextField,
+    InputAdornment,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
 
-export default function ServiceName({ serviceName, onUpdateServiceName }) {
+export default function ServiceName({ serviceName, onUpdateServiceName, prefix = "[WAZZUP]" }) {
     const [isEditing, setIsEditing] = useState(false);
     
     const [localName, setLocalName] = useState(serviceName);
@@ -76,6 +77,24 @@ export default function ServiceName({ serviceName, onUpdateServiceName }) {
                                     WebkitBoxShadow: "0 0 0px 1000px transparent inset",
                                 },
                             },
+                            startAdornment: prefix ? (
+                                <InputAdornment
+                                    position="start"
+                                    sx={{
+                                        color: "var(--palette-text-primary)",
+                                    }}
+                                >
+                                    <Typography
+                                        sx={{
+                                            color: "var(--palette-text-primary)",
+                                            fontSize: "1rem",
+                                            userSelect: "none",
+                                        }}
+                                    >
+                                        {prefix}
+                                    </Typography>
+                                </InputAdornment>
+                            ) : null,
                         },
                     }}
                 />
@@ -88,6 +107,19 @@ export default function ServiceName({ serviceName, onUpdateServiceName }) {
                         boxSizing: "border-box",
                     }}
                 >
+                    <Typography
+                        sx={{
+                            fontSize: "1.5rem",
+                            lineHeight: 1.334,
+                            maxWidth: "10rem",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                            fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+                        }}
+                    >
+                        {prefix}
+                    </Typography>
                     <Typography
                         sx={{
                             fontSize: "1.5rem",

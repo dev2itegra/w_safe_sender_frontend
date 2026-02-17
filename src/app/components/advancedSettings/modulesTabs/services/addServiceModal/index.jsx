@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Button, Box, Typography, FormControl, TextField, Select, MenuItem, InputLabel, Divider, } from "@mui/material";
 
 import ModalHeader from "./modalHeader";
@@ -18,6 +18,16 @@ export default function NewServiceModal({
     setServiceName,
 }) {
     const disabled = isProcessing;
+
+    const prefix = useMemo(() => {
+        switch (serviceType) {
+            case "wazzup":
+                return "[WAZZUP]";
+            case "pyrogram":
+                return "[TELEGRAM]";
+        }
+        return "";
+    }, [serviceType])
 
     return (
         <Modal
@@ -83,6 +93,7 @@ export default function NewServiceModal({
                     <ServiceNameInput
                         serviceName={serviceName}
                         setServiceName={setServiceName}
+                        prefix={prefix}
                     />
                 </Box>
                 <Box

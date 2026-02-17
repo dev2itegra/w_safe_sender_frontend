@@ -122,9 +122,14 @@ export default function TemplateModal({
     headerName,
     actionName,
     serviceChannels,
+    serviceType,
 }) {
+    const [templateChannel, setTemplateChannel] = useState(template?.channel);
+    useEffect(() => {
+        setTemplateChannel(template?.channel)
+    }, [template?.channel]);    
+
     const [templateName, setTemplateName] = useState(template?.name || "");
-    const [templateChannel, setTemplateChannel] = useState("");
     const [interval, setInterval] = useState(template?.interval || 1);
     const [templateMessageText, setTemplateMessageText] = useState(template?.message_text || "");
     const [weekdays, setWeekdays] = useState(() => normalizeWeekdays(template?.send_timings));
@@ -134,12 +139,12 @@ export default function TemplateModal({
         if (!serviceChannels || serviceChannels.length === 0) return;
 
         const pref = template?.channel != null ? String(template.channel) : "";
-        const exists = serviceChannels.some((c) => String(c.id) === pref);
+        const exists = serviceChannels.some((c) => String(c.channelId) === pref);
 
         if (exists) {
             setTemplateChannel(pref);
         } else {
-            setTemplateChannel(String(serviceChannels[0].id));
+            setTemplateChannel(String(serviceChannels[0].channelId));
         }
     }, [template?.channel, serviceChannels]);
 
@@ -147,7 +152,11 @@ export default function TemplateModal({
     useEffect(() => {
         setWeekdays(normalizeWeekdays(template?.send_timings));
         setTemplateName(template?.name || "");
-        setTemplateChannel(serviceChannels.find((c) => c.id === template?.channel)?.id || "");
+        if ( !!serviceChannels?.length ) {
+            setTemplateChannel(
+                serviceChannels.find((c) => String(c.channelId) === String(template?.channel))?.channelId || ""
+            );
+        }
         setTemplateMessageText(template?.message_text || "");
         setErrors([]);
     }, [template]);
@@ -160,8 +169,9 @@ export default function TemplateModal({
         if (!name) nextErrors.push("Название шаблона не должно быть пустым.");
         if (name.length >= 64) nextErrors.push("Название шаблона должно быть короче 64 символов.");
 
+        
         const ch = String(templateChannel || "").trim();
-        if (!ch.length) nextErrors.push('Выберите канал.');
+        if (serviceType === "wazzup" && !ch.length) nextErrors.push('Выберите канал.');
 
         const msg = String(templateMessageText || "").trim();
         if (!msg) nextErrors.push("Текст сообщения не должен быть пустым.");
@@ -175,7 +185,7 @@ export default function TemplateModal({
             setErrors(nextErrors);
             return;
         }
-
+        
         const payload = {
             ...template,
             name,
@@ -253,11 +263,14 @@ export default function TemplateModal({
                             templateName={templateName}
                             setTemplateName={setTemplateName}
                         />
-                        <TemplateChannelSelect
-                            channel={templateChannel}
-                            setChannel={(v) => setTemplateChannel(String(v))}
-                            serviceChannels={serviceChannels}
-                        />
+                        {
+                            serviceType === "wazzup" && 
+                            <TemplateChannelSelect
+                                channel={templateChannel}
+                                setChannel={(v) => setTemplateChannel(String(v))}
+                                serviceChannels={serviceChannels}
+                            />
+                        }
                         <IntervalSlider
                             interval={interval}
                             setInterval={setInterval}

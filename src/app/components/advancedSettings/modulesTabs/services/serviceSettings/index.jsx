@@ -25,6 +25,7 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
 
     const [currentTabId, setCurrentTabId] = useState(TABS[0].id);
 
+    const [serviceType, setServiceType] = useState(null);
     const [serviceName, setServiceName] = useState("");
     
     const [apiKey, setApiKey] = useState("");
@@ -38,10 +39,13 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
 
     const [serviceChannels, setServiceChannels] = useState([]);
 
+    const [linkedPyrogramPhone, setLinkedPyrogramPhone] = useState("");
+
+
     const getChannels = useCallback(async () => {
         const response = await baseApiInstance.get(`/channels/service/${serviceId}`);
-        return response.data.channels;
-    }, []);
+        return response.data?.data?.channels || [];
+    }, [serviceId]);
 
 
     const onSetApiKey = useCallback(async (value) => {
@@ -68,9 +72,10 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
     const onUpdateServiceName = useCallback(async (name) => {
         if (name !== serviceName) {
             try {
+                
                 const response = await baseApiInstance.patch(`/services/${serviceId}`, 
                     {
-                        name: name,
+                        name: `[WAZZUP] ${name}`,
                     }
                 );
     
@@ -91,17 +96,22 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
                 
                 const response = await baseApiInstance.get(`/services/${serviceId}`);
                 const serviceData = response.data;
-                // const serviceData = {
-                //     id: 1,
-                //     name: "[WAZZUP] рабочий asdsad asdasdsadsa saddas",
-                //     subscription: {
-                //         is_trial: true,
-                //         end_date: "2025-11-16",
-                //     },
-                //     is_token_linked: true,
-                //     token: "12345678878878"
-                // }
-                setServiceName(serviceData.name);
+
+                if ( response.data.type === "wazzup" ) {
+                    setServiceName(serviceData.name.replace("[WAZZUP] ", ""));
+                    setServiceType("wazzup");
+                } else if ( response.data.type === "pyrogram" ) {
+                    setServiceName(serviceData.name.replace("[TELEGRAM] ", ""));
+                    setServiceType("pyrogram");
+
+                    let pn = "";
+                    try {
+                        pn = serviceData.config.pyrogram_accounts[0].phone_number;
+                    } catch (error) {
+
+                    }
+                    setLinkedPyrogramPhone(pn);
+                }
 
                 setApiKey(serviceData.api_token || "");
                 setIsApiKeyEnabled(!!serviceData.api_token);
@@ -109,7 +119,6 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
                 setSubscriptionEndDate(serviceData.subscription_expires_at);
                 setIsTrialSubscription(serviceData.subscription_type === "trial");
                 
-                // setServiceTemplates([]);
 
                 setIsLoading(false);
             } catch (error) {
@@ -158,13 +167,16 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
     }, [serviceId, isApiKeyEnabled, apiKey]);
 
     const onCreateTemplate = useCallback(async (payload) => {
-        console.log(payload);
         try {
+            const channelToSend = serviceType === "pyrogram"
+                ? linkedPyrogramPhone
+                : payload.channel;
+
             const response = await baseApiInstance.post(
                 `/services/${serviceId}/templates`,
                 {
                     name: payload.name,
-                    channel: payload.channel,
+                    channel: channelToSend,
                     interval: payload.interval,
                     send_timings: payload.send_timings,
                     message_text: payload.message_text,
@@ -183,15 +195,24 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
         }
         
 
-    }, [serviceTemplates]);
+    }, [serviceTemplates, linkedPyrogramPhone]);
 
     
     const onEditTemplate = useCallback(async (payload) => {
         try {   
-            console.log(payload);
+            const channelToSend = serviceType === "pyrogram"
+                ? linkedPyrogramPhone
+                : payload.channel;
+
             const response = await baseApiInstance.put(
                 `/services/${serviceId}/templates/${payload.id}`,
-                payload,
+                {
+                    name: payload.name,
+                    channel: channelToSend,
+                    interval: payload.interval,
+                    send_timings: payload.send_timings,
+                    message_text: payload.message_text,
+                },
             );
             if ( response.status === 200 ) {
                 
@@ -247,6 +268,10 @@ export default function ServiceSettings({ serviceId, onMoveBack }) {
                                 onCreateTemplate={onCreateTemplate}
                                 onEditTemplate={onEditTemplate}
                                 serviceChannels={serviceChannels}
+                                serviceType={serviceType}
+                                linkedPyrogramPhone={linkedPyrogramPhone}
+                                setLinkedPyrogramPhone={setLinkedPyrogramPhone}
+                                serviceId={serviceId}
                             />
                         }
                         {

@@ -11,6 +11,7 @@ export default function Templates(
         onCreateTemplate, 
         onEditTemplate,
         serviceChannels,
+        serviceType,
     }
 ) {
 
@@ -27,11 +28,13 @@ export default function Templates(
             <TabHeader 
                 onCreateTemplate={onCreateTemplate}
                 serviceChannels={serviceChannels}    
+                serviceType={serviceType}
             />
             <TemplatesList
                 templates={serviceTemplates} 
                 onEditTemplate={onEditTemplate}
                 serviceChannels={serviceChannels}
+                serviceType={serviceType}
             />
         </Box>
     )

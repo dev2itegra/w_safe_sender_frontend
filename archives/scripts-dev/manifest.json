@@ -1,6 +1,6 @@
 {
   "widget": {
-    "version": "0.0.12",
+    "version": "0.0.24",
     "interface_version": 2,
     "init_once": true,
     "installation": true,

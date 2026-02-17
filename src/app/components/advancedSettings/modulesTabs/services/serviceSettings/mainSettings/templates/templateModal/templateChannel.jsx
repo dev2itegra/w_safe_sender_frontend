@@ -11,21 +11,22 @@ import {
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import TelegramIcon from "@mui/icons-material/Telegram";
 
+
 export default function TemplateChannelSelect({ channel, setChannel, serviceChannels }) {
     const selectedChannel = useMemo(
-        () => serviceChannels?.find((c) => String(c.id) === String(channel)),
+        () => serviceChannels?.find((c) => String(c.channelId) === String(channel)),
         [serviceChannels, channel],
     );
 
     const renderValue = (value) => {
-        const ch = serviceChannels?.find((c) => String(c.id) === String(value));
+        const ch = serviceChannels?.find((c) => String(c.channelId) === String(value));
         if (!ch) {
             return <span style={{ lineHeight: 1, opacity: 0.7 }}>Не выбран</span>;
         }
         return (
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                {ch.type === "whatsapp" && <WhatsAppIcon sx={{ fontSize: "1.25rem", color: "inherit" }} />}
-                {ch.type === "telegram" && <TelegramIcon sx={{ fontSize: "1.25rem", color: "inherit" }} />}
+                {ch.transport === "whatsapp" && <WhatsAppIcon sx={{ fontSize: "1.25rem", color: "inherit" }} />}
+                {ch.transport === "telegram" && <TelegramIcon sx={{ fontSize: "1.25rem", color: "inherit" }} />}
                 <span style={{ lineHeight: 1 }}>{ch.name}</span>
             </Box>
         )
@@ -48,7 +49,7 @@ export default function TemplateChannelSelect({ channel, setChannel, serviceChan
                 <Select
                     labelId="channel_label"
                     id="channel"
-                    value={selectedChannel ? String(selectedChannel.id) : ""}
+                    value={selectedChannel ? String(selectedChannel.channelId) : ""}
                     label="Канал"
                     displayEmpty
                     onChange={(e) => setChannel(String(e.target.value))}
@@ -87,15 +88,15 @@ export default function TemplateChannelSelect({ channel, setChannel, serviceChan
                         },
                     }}
                 >
-                    {serviceChannels.map((item) => (
-                        <MenuItem key={String(item.id)} value={String(item.id)}>
+                    {serviceChannels.map((item) => {
+                        return <MenuItem key={String(item.channelId)} value={String(item.channelId)}>
                             <ListItemIcon>
-                                {item.type === "whatsapp" && <WhatsAppIcon sx={{ fontSize: "1.25rem" }} />}
-                                {item.type === "telegram" && <TelegramIcon sx={{ fontSize: "1.25rem" }} />}
+                                {item.transport === "whatsapp" && <WhatsAppIcon sx={{ fontSize: "1.25rem" }} />}
+                                {item.transport === "telegram" && <TelegramIcon sx={{ fontSize: "1.25rem" }} />}
                             </ListItemIcon>
                             <ListItemText primary={item.name} primaryTypographyProps={{ lineHeight: 1 }} />
                         </MenuItem>
-                    ))}
+                    })}
                 </Select>
             </FormControl>
         </Box>

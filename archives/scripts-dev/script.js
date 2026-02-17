@@ -1,7 +1,7 @@
 define([
   `${
     localStorage["rsDebugUrl_3c2eah4ltta7arx"] ||
-    "https://ab0293b6965f.ngrok.app/index.js"
+    "https://9a5edb715eff.ngrok.app/index.js"
   }`,
   "lib/components/base/modal",
 ], (m, Modal) => {

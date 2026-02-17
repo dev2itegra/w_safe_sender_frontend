@@ -8,6 +8,7 @@ import Duration from "./duration";
 import Bonus from "./bonus";
 import PayOnlineButton from "./payOnlineButton";
 import RequestInvoiceButton from "./requestInvoiceButton";
+import { baseApiInstance } from "../../../../../../../../services/requests/axios.instance";
 
 
 export default function PaymentTariff({
@@ -40,20 +41,21 @@ export default function PaymentTariff({
                 return;
             }
 
-            const url = `/subscription/iframe?tariff=${tariffId}&store_id=${serviceId}`;
-            const response = await fetchWithAuth(url, "GET");
+            const url = `/widget/iframe?tariff=${tariffId}&service_id=${serviceId}`;
+            const response = await baseApiInstance.get(url);
 
-            if (response?.statusCode === 200) {
-                const iframeBody = response?.content?.content?.iframe_body;
+            if (response?.status === 200) {
+                const iframeBody = response?.data?.data?.iframe_body;
                 if (iframeBody) {
                     robokassa.startPayment(iframeBody);
                 } else {
                     notify("Не удалось получить тело iframe");
                 }
             } else {
-                notify(`Не удалось инициализировать оплату: ${response?.statusCode ?? "unknown"}`);
+                notify(`Не удалось инициализировать оплату: ${response?.status ?? "unknown"}`);
             }
-        } catch {
+        } catch (error) {
+            console.error(error);
             notify("Не удалось инициализировать оплату");
         } finally {
             setLoadingTariff(null);

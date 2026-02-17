@@ -61,9 +61,10 @@ export default function ServicesSettings({  }) {
 
             if ( serviceType === "wazzup" ) {
                 const response = await baseApiInstance.post(
-                    "/services/wazzup", 
+                    "/services", 
                     {
-                        "name": serviceName,
+                        "name": `[WAZZUP] ${serviceName}`,
+                        "type": "wazzup",
                     }
                 );
 
@@ -73,19 +74,44 @@ export default function ServicesSettings({  }) {
                 prevServices.push(
                     {
                         id: createdServiceId,
-                        name: response.data.name,
+                        name: `[WAZZUP] ${response.data.name}`,
                         subscription: {
                             is_trial: true,
-                            end_date: "2025-10-16",
+                            end_date: "2025-12-31",
                         },
                         is_token_linked: false,
                     }
                 );
-                setIncludedServices(prevServices);
 
+                setIncludedServices(prevServices);
                 onOpenService(createdServiceId);
 
+            } else if ( serviceType === "pyrogram" ) {
+                const response = await baseApiInstance.post(
+                    "/services", 
+                    {
+                        "name": `[TELEGRAM] ${serviceName}`,
+                        "type": "pyrogram",
+                    }
+                );
 
+                const createdServiceId = response.data.id;
+
+                const prevServices = JSON.parse(JSON.stringify(includedServices)); 
+                prevServices.push(
+                    {
+                        id: createdServiceId,
+                        name: `[TELEGRAM] ${response.data.name}`,
+                        subscription: {
+                            is_trial: true,
+                            end_date: "2025-12-31",
+                        },
+                        is_token_linked: false,
+                    }
+                );
+
+                setIncludedServices(prevServices);
+                onOpenService(createdServiceId);
             } else {
                 throw new Error(`invalid service "${serviceType}"`);
             }

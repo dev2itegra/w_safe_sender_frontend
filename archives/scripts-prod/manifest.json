@@ -1,6 +1,6 @@
 {
   "widget": {
-    "version": "2.0.2",
+    "version": "3.2.1",
     "interface_version": 2,
     "init_once": true,
     "installation": true,
@@ -13,23 +13,25 @@
     "description": "widget.description",
     "short_description": "widget.short_description"
   },
-  "locations": ["settings", "advanced_settings", "everywhere"],
-  "tour": {
-    "is_tour": true,
-    "tour_images": {
-      "ru": [
-        "/images/tour/ru/tour_1.png",
-        "/images/tour/ru/tour_2.png"
-      ]
-    },
-    "tour_description": "tour.tour_description"
-  },
+  "locations": ["settings", "advanced_settings", "everywhere", "digital_pipeline"],
   "settings": {
     "phoneNumber": {
       "name": "settings.phoneNumber",
       "type": "text",
       "required": true
     }
+  },
+  "dp": {
+    "settings": {
+      "custom": {
+        "name": "dp.custom",
+        "type": "custom",
+        "required": false
+      }
+    },
+    "action_multiple": false,
+    "webhook_url": "https://w-sender.int2app.ru/api/v1/widget/dp",
+    "title": "dp.title"
   },
   "advanced": { "title": "advanced.title" }
 }

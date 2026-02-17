@@ -46,7 +46,7 @@ export default function ApiKey({ prevApiKey, onSetApiKey }) {
                         lineHeight: 1,
                     }}
                 >
-                    Находится там то там то
+                    Аккаунт Wazzup → вкладка Интеграция с СРМ → дополнительно → Ключ API
                 </Typography>   
             </Box>
             <TextField

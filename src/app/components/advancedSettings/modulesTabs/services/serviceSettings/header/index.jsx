@@ -4,7 +4,7 @@ import ReturnBackButton from "./backButton";
 import ServiceName from "./serviceName";
 
 
-export default function ServiceSettingsHeader({ serviceName, onMoveBack, onUpdateServiceName }) {
+export default function ServiceSettingsHeader({ serviceName, onMoveBack, onUpdateServiceName, serviceType }) {
     return (
         <Box
             sx={{
@@ -23,6 +23,7 @@ export default function ServiceSettingsHeader({ serviceName, onMoveBack, onUpdat
             <ServiceName
                 serviceName={serviceName}
                 onUpdateServiceName={onUpdateServiceName}
+                prefix={serviceType === "wazzup"? "[WAZZUP]" : "[TELEGRAM]"}
             />
         </Box>
     )

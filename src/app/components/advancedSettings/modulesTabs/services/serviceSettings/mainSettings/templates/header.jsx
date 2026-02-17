@@ -5,7 +5,7 @@ import MessageOutlinedIcon from '@mui/icons-material/MessageOutlined';
 import { CreateTemplateButton } from "./createTemplateButton";
 
 
-export default function TabHeader({ onCreateTemplate, serviceChannels }) {
+export default function TabHeader({ onCreateTemplate, serviceChannels, serviceType }) {
     return (
         <Box
             sx={{
@@ -29,7 +29,11 @@ export default function TabHeader({ onCreateTemplate, serviceChannels }) {
                 <TabName />
                 <TemplatesHint />
             </Box>
-            <CreateTemplateButton onCreateTemplate={onCreateTemplate} serviceChannels={serviceChannels} />
+            <CreateTemplateButton 
+                onCreateTemplate={onCreateTemplate} 
+                serviceChannels={serviceChannels} 
+                serviceType={serviceType}
+            />
         </Box>
     );
 }

@@ -3,11 +3,10 @@ export const tabsCtx = {
         settings: undefined,
     },
     instruction: {
-        link: "https://speech2text.ru/integration/amocrm"
+        link: "https://integrator2.ru/widjety-amocrm-wasend"
     },
     analytics: {
         managersList: undefined,
-        link: "/stats/widgets/int2_speech2text/speech2text_analytics",
     },
     aiAnalysis: {
         promptPatterns: undefined,

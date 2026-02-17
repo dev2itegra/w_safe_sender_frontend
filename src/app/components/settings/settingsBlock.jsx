@@ -12,7 +12,6 @@ import {
 import { Clear as ClearIcon } from "@mui/icons-material";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 
-import styles from "./SettingsBlock.module.scss";
 import { baseApiInstance } from "../../services/requests/axios.instance.js";
 import { amoApiInstance } from "../../services/requests/amoAPI.js";
 import { widgetCode, widgetIntegrationId } from "../../config.js";
@@ -21,335 +20,82 @@ import { useThemeDetector } from "../../services/themes/themeDetector.js";
 import { DescriptionButtons } from "./buttons.jsx";
 
 
-const SettingsBlock = ({ widget }) => {
-    const [widgetIsActive, setWidgetIsActive] = useState(widget?.params?.active === "Y");
-    const [phoneNumber, setPhoneNumber] = useState(widget?.params?.phoneNumber || "");
-    const [isSaving, setIsSaving] = useState(false);
-
+const SettingsBlock = ({ syncAmoPhone, widget, onDisableButton }) => {
+    const [phone, setPhone] = useState(widget?.params?.phoneNumber || "");
+    const [wasNonEmpty, setWasNonEmpty] = useState(!!widget?.params?.phoneNumber);
     const theme = useThemeDetector();
 
-    const handleChange = useCallback((newPhone) => {
-        setPhoneNumber(newPhone);
-    }, []);
+    useEffect(() => {
+        if (syncAmoPhone) syncAmoPhone(phone);
+    }, [phone, syncAmoPhone]);
 
-    const isPhoneValid = matchIsValidTel(phoneNumber);
+    useEffect(() => {
+        if (phone.trim() !== "") setWasNonEmpty(true);
+    }, [phone]);
 
-    const isDisabled = useCallback(() => {
-        return (
-            isSaving ||
-            !isPhoneValid ||  
-            !phoneNumber.trim() 
-        );
-    }, [isSaving, isPhoneValid, phoneNumber]);
+    const isInvalid = !matchIsValidTel(phone);
 
-    const handleSubmit = useCallback(
-        async (e) => {
-            e.preventDefault();
-
-            if (!isPhoneValid) return; 
-
-            setIsSaving(true);
-            try {
-                widget.params.phoneNumber = phoneNumber;
-                
-                const widgetSettings = widget.get_settings();
-                
-                const body = {
-                    action: "edit",
-                    id: widgetSettings.id,
-                    code: widgetCode,
-                    widget_active: "Y",
-                    settings: {
-                        phoneNumber,
-                    },
-                    is_widget_state_action: 0,
-                    is_marketplace_request: 1,
-                };
-
-                const { data } = await amoApiInstance.post("/ajax/widgets/edit", body);
-                    
-                if (data.response.status === "ok") {
-                    const response = await baseApiInstance.post("/widget/activation", {
-                        phone_number: phoneNumber,
-                    });
-                    if (response.status === 200) {
-                        const redirectUrl = `/settings/widgets/${widgetCode}`;
-                        window.open(redirectUrl, "_self");
-                        return;
-                    }
-                } else {
-                    throw new Error("Unsuccessful amo widget settings editing");
-                }
-
-            } catch (error) {
-                console.error("Widget activation error", error);
-                sendAmoErrorNotification("Ошибка активации виджета");
-            } finally {
-                setIsSaving(false);
-            }
-        },
-        [phoneNumber, widget, isPhoneValid]
-    );
+    useEffect(() => {
+        if (typeof onDisableButton === "function") {
+            onDisableButton(isInvalid);
+        }
+    }, [isInvalid, onDisableButton]);
 
     return (
         <>
             <DescriptionButtons theme={theme} />
-            <form onSubmit={handleSubmit}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        rowGap: "1rem",
-                        borderRadius: "5px",
-                        padding: "20px",
-                        border: "1px solid var(--palette-border-default)",
-                        backgroundColor: "var(--palette-background-default)",
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    rowGap: "1rem",
+                    borderRadius: "5px",
+                    padding: "20px",
+                    border: "1px solid var(--palette-border-default)",
+                    backgroundColor: "var(--palette-background-default)",
+                }}
+            >
+                <MuiTelInput
+                    value={phone}
+                    onChange={setPhone}
+                    defaultCountry="RU"
+                    preferredCountries={["RU"]}
+                    size="small"
+                    variant="outlined"
+                    label="Номер телефона"
+                    error={isInvalid}
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <HintAdornment
+                                    title="Этот номер будет использоваться для связи с вами в случае возникновения проблем."
+                                    ariaLabel="подсказка по номеру техподдержки"
+                                    theme={theme}
+                                />
+                            ),
+                        },
                     }}
-                >
-                    <MuiTelInput
-                        value={phoneNumber}
-                        onChange={handleChange}
-                        defaultCountry="RU"
-                        preferredCountries={["RU"]}
-                        size="small"
-                        variant="outlined"
-                        name="phoneNumber"
-                        label="Номер телефона"
-                        error={!!phoneNumber && !isPhoneValid}  // подсвечиваем невалидный ввод
-                        // helperText={
-                        //     !!phoneNumber && !isPhoneValid
-                        //         ? "Введите корректный номер телефона"
-                        //         : ""
-                        // }
-                        slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <HintAdornment
-                                        title="Этот номер будет использоваться для связи с вами в случае возникновения проблем."
-                                        ariaLabel="подсказка по номеру техподдержки"
-                                        theme={theme}
-                                    />
-                                ),
-                            },
-                        }}
-                        sx={{
-                            backgroundColor: theme === "dark" ? "#153043" : "rgba(255, 255, 255)",
-                            marginBottom: "5px",
-                            "& .MuiOutlinedInput-root": {
-                                color: theme === "dark" ? "rgba(255, 255, 255)" : "rgba(0, 0, 0, 0.87)",
-                                "& fieldset": { borderColor: "var(--palette-border-default)" },
-                                "&:hover fieldset": { borderColor: theme === "dark" ? "#ffffff" : "#212121" },
-                                "&.Mui-focused fieldset": { borderColor: theme === "dark" ? "#90caf9" : "#1976d2" },
-                            },
-                            "& .MuiInputLabel-root": {
-                                color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
-                                "&.Mui-focused": { color: theme === "dark" ? "#90caf9" : "#1976d2" },
-                            },
-                            "& .MuiOutlinedInput-input::placeholder": { color: "var(--palette-border-default)", opacity: 1 },
-                            "& .MuiSvgIcon-root": { fill: theme === "dark" ? "rgb(255, 255, 255)" : "rgba(0, 0, 0, 0.54)" },
-                        }}
-                    />
-
-                    <Button
-                        type="submit"
-                        variant="outlined"
-                        disabled={isDisabled()}
-                        className={styles.saveButton}
-                        startIcon={isSaving ? <CircularProgress size="20px" /> : null}
-                        sx={{
-                            color: theme === "dark" ? "#90caf9" : "#1976d2",
-                            "&:disabled": {
-                                color: theme === "dark"
-                                    ? "rgba(255, 255, 255, 0.3)"
-                                    : "rgba(0, 0, 0, 0.26)",
-                                border: theme === "dark"
-                                    ? "1px solid rgba(255, 255, 255, 0.12)"
-                                    : "1px solid rgba(0, 0, 0, 0.12)",
-                            },
-                        }}
-                    >
-                        Настроить...
-                    </Button>
-                </Box>
-            </form>
-            <WidgetSettingsFooter accountId={window.APP?.constant?.("account")?.id} />
+                    sx={{
+                        backgroundColor: theme === "dark" ? "#153043" : "rgba(255, 255, 255)",
+                        marginBottom: "5px",
+                        "& .MuiOutlinedInput-root": {
+                            color: theme === "dark" ? "rgba(255, 255, 255)" : "rgba(0, 0, 0, 0.87)",
+                            "& fieldset": { borderColor: "var(--palette-border-default)" },
+                            "&:hover fieldset": { borderColor: theme === "dark" ? "#ffffff" : "#212121" },
+                            "&.Mui-focused fieldset": { borderColor: theme === "dark" ? "#90caf9" : "#1976d2" },
+                        },
+                        "& .MuiInputLabel-root": {
+                            color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                            "&.Mui-focused": { color: theme === "dark" ? "#90caf9" : "#1976d2" },
+                        },
+                        "& .MuiOutlinedInput-input::placeholder": { color: "var(--palette-border-default)", opacity: 1 },
+                        "& .MuiSvgIcon-root": { fill: theme === "dark" ? "rgb(255, 255, 255)" : "rgba(0, 0, 0, 0.54)" },
+                    }}
+                />
+            </Box>
         </>
     );
 };
-
-
-
-// import React, { useState, useEffect, useCallback } from "react";
-// import { MuiTelInput, matchIsValidTel } from "mui-tel-input";
-
-// import {
-//     Box,
-//     Button,
-//     InputAdornment,
-//     IconButton,
-//     CircularProgress,
-//     TextField,
-//     Tooltip,
-// } from "@mui/material";
-// import { Clear as ClearIcon } from "@mui/icons-material";
-// import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-
-// import styles from "./SettingsBlock.module.scss";
-// import { baseApiInstance } from "../../services/requests/axios.instance.js";
-// import { amoApiInstance } from "../../services/requests/amoAPI.js";
-// import { widgetCode, widgetIntegrationId } from "../../config.js";
-// import { sendAmoErrorNotification } from "../../services/amoNotification/sendNotification.js";
-// import { useThemeDetector } from "../../services/themes/themeDetector.js";
-// import { DescriptionButtons } from "./buttons.jsx";
-
-
-// const SettingsBlock = ({ widget }) => {
-//     const [widgetIsActive, setWidgetIsActive] = useState(widget?.params?.active === "Y" ? true : false);
-//     const [phoneNumber, setPhoneNumber] = useState(widget?.params?.phoneNumber || "");
-//     const [isSaving, setIsSaving] = useState(false);
-
-//     const theme = useThemeDetector();
-
-//     const handleChange = useCallback((newPhone) => {
-//         setPhoneNumber(newPhone);
-//     }, []);
-
-
-//     const isDisabled = useCallback(() => {
-//         return (
-//             isSaving
-//         );
-//     }, [isSaving]);
-
-
-//     const handleSubmit = useCallback(
-//         async (e) => {
-//             e.preventDefault();
-
-//             setIsSaving(true);
-//             try {
-//                 widget.params.phoneNumber = phoneNumber;
-                
-//                 const widgetSettings = widget.get_settings();
-                
-//                 const body = {
-//                     action: "edit",
-//                     id: widgetSettings.id,
-//                     code: widgetCode,
-//                     widget_active: "Y",
-//                     settings: {
-//                         phoneNumber,
-//                     },
-//                     is_widget_state_action: 0,
-//                     is_marketplace_request: 1,
-//                 };
-
-//                 const { data } = await amoApiInstance.post("/ajax/widgets/edit", body);
-                    
-//                 if ( data.response.status == "ok" ) {
-//                     const response = await baseApiInstance.post(
-//                         "/widget/activation", 
-//                         {
-//                             phone_number: phoneNumber,
-//                         }
-//                     );
-//                     if ( response.status === 200) {
-//                         const redirectUrl = `/settings/widgets/${widgetCode}`;
-//                         window.open(redirectUrl, "_self");                        
-//                         return;
-//                     }
-//                 } else {
-//                     throw new Error("Unsuccessful amo widget settings editing")
-//                 }
-
-//             } catch (error) {
-//                 console.error("Widget activation error", error);
-//                 sendAmoErrorNotification(
-//                     "Ошибка активации виджета",
-//                 )
-                
-//             } finally {
-//                 setIsSaving(false);
-//             }
-//         },
-//         [phoneNumber, widget]
-//     );
-
-//     return (
-//         <>
-//             <DescriptionButtons theme={theme} />
-//             <form onSubmit={handleSubmit}>
-//                 <Box
-//                     sx={{
-//                         display: "flex",
-//                         flexDirection: "column",
-//                         rowGap: "1rem",
-//                         borderRadius: "5px",
-//                         padding: "20px",
-//                         border: "1px solid var(--palette-border-default)",
-//                         backgroundColor: "var(--palette-background-default)",
-//                     }}
-//                 >
-//                     <MuiTelInput
-//                         value={phoneNumber}
-//                         onChange={handleChange}
-//                         defaultCountry="RU"
-//                         preferredCountries={["RU"]}
-//                         size="small"
-//                         variant="outlined"
-//                         name="phoneNumber"
-//                         label="Номер телефона"
-//                         slotProps={{
-//                             input: {
-//                                 endAdornment: (
-//                                     <HintAdornment
-//                                         title="Этот номер будет использоваться для связи с вами в случае возникновения проблем."
-//                                         ariaLabel="подсказка по номеру техподдержки"
-//                                         theme={theme}
-//                                     />
-//                                 ),
-//                             },
-//                         }}
-//                         sx={{
-//                             backgroundColor: theme === "dark" ? "#153043" : "rgba(255, 255, 255)",
-//                             marginBottom: "5px",
-//                             "& .MuiOutlinedInput-root": {
-//                                 color: theme === "dark" ? "rgba(255, 255, 255)" : "rgba(0, 0, 0, 0.87)",
-//                                 "& fieldset": { borderColor: "var(--palette-border-default)" },
-//                                 "&:hover fieldset": { borderColor: theme === "dark" ? "#ffffff" : "#212121" },
-//                                 "&.Mui-focused fieldset": { borderColor: theme === "dark" ? "#90caf9" : "#1976d2" },
-//                             },
-//                             "& .MuiInputLabel-root": {
-//                                 color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
-//                                 "&.Mui-focused": { color: theme === "dark" ? "#90caf9" : "#1976d2" },
-//                             },
-//                             "& .MuiOutlinedInput-input::placeholder": { color: "var(--palette-border-default)", opacity: 1 },
-//                             "& .MuiSvgIcon-root": { fill: theme === "dark" ? "rgb(255, 255, 255)" : "rgba(0, 0, 0, 0.54)" },
-//                         }}
-//                     />
-
-//                     <Button
-//                         type="submit"
-//                         variant="outlined"
-//                         disabled={isDisabled()}
-//                         className={styles.saveButton}
-//                         startIcon={isSaving ? <CircularProgress size="20px" /> : null}
-//                         sx={{
-//                             color: theme === "dark" ? "#90caf9" : "#1976d2",
-//                             "&:disabled" : {
-//                                 color: theme === "dark"? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.26)",
-//                                 border: theme === "dark"? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(0, 0, 0, 0.12)",
-//                             }
-//                         }}
-//                     >
-//                         Настроить...
-//                     </Button>
-//                 </Box>
-//             </form>
-//             <WidgetSettingsFooter accountId={window.APP?.constant?.("account")?.id} />
-//         </>
-//     );
-// };
 
 
 function HintAdornment({ title, ariaLabel, theme }) {
@@ -379,11 +125,12 @@ function HintAdornment({ title, ariaLabel, theme }) {
 
 
 function buildTelegramHref() {
-    return `https://t.me/speechtwotext`;
+    const accountId = APP.constant("account").id;
+    return `https://t.me/integrator2?text=widjet:sender,id=${accountId}`;
 }
 
 function buildWhatsAppHref() {
-    return `https://api.whatsapp.com/send/?phone=79152805424&text=start&type=phone_number&app_absent=0`;
+    return `https://api.whatsapp.com/send/?phone=79697774995&text=Здравствуйте%21+У+меня+вопрос+по+виджету+Рассылка%2C+мой+номер+аккаунта+amoCRM+${window.APP?.constant?.("account")?.id}%3A+&type=phone_number&app_absent=0`;
 }
 
 
@@ -428,7 +175,7 @@ export function WidgetSettingsFooter({
                     </LinkIcon>
 
                     <LinkIcon
-                        href="mailto:info@speech2text.ru"
+                        href="mailto:support@integrator2.ru"
                         ariaLabel="Написать на email"
                     >
                         <svg width="25" height="25" fill="currentColor" focusable="false" aria-hidden="true" viewBox="0 0 24 24">

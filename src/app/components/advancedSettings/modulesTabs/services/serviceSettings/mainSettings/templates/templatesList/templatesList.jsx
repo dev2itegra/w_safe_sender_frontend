@@ -4,7 +4,7 @@ import { Box, Typography } from "@mui/material";
 import TemplatesListItem from "./templatesListItem";
 
 
-export default function TemplatesList({ templates, onEditTemplate, serviceChannels }) {
+export default function TemplatesList({ templates, onEditTemplate, serviceChannels, serviceType }) {
 
     return (
         <Box
@@ -26,6 +26,7 @@ export default function TemplatesList({ templates, onEditTemplate, serviceChanne
                             isLast={index === (templates.length - 1)}
                             onEditTemplate={onEditTemplate}
                             serviceChannels={serviceChannels}
+                            serviceType={serviceType}
                         />
                     ))
                 :

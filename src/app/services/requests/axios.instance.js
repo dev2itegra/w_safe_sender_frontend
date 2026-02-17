@@ -31,6 +31,8 @@ export const baseApiInstance = axios.create({
 });
 
 baseApiInstance.interceptors.request.use(async (config) => {
+    if (config.skipAuthToken) return config;
+
     const token = await getDisposableToken();
     config.headers["x-auth-token"] = token;
     return config;

@@ -23,9 +23,9 @@ export default function TariffsBlock({ serviceId }) {
 
     const variants = useMemo(
         () => [
-            { tariffId: 1, price: "1 800 руб.", duration: "1 месяц", bonus: null },
-            { tariffId: 2, price: "10 000 руб.", duration: "6 месяцев",  bonus: "+1 месяц в подарок" },
-            { tariffId: 3, price: "15 000 руб.", duration: "10 месяцев", bonus: "+3 месяца в подарок" },
+            { tariffId: 1, price: "3 000 руб.", duration: "1 месяц", bonus: null },
+            { tariffId: 2, price: "18 000 руб.", duration: "6 месяцев",  bonus: "+1 месяц в подарок" },
+            { tariffId: 3, price: "30 000 руб.", duration: "10 месяцев", bonus: "+3 месяца в подарок" },
         ],
         []
     );

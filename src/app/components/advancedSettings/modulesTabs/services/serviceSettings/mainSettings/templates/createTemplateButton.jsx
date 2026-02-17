@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@mui/material";
 
 import TemplateModal from "./templateModal";
@@ -20,7 +20,7 @@ const getNewTemplateBlueprint = () => {
 }
 
 
-export function CreateTemplateButton({onCreateTemplate, serviceChannels}) {
+export function CreateTemplateButton({onCreateTemplate, serviceChannels, serviceType}) {
     const [isTemplateCreating, setIsTemplateCreating] = useState(false);
     const [isTemplateCreatingProcessing, setIsTemplateCreatingProcessing] = useState(false);
 
@@ -32,12 +32,17 @@ export function CreateTemplateButton({onCreateTemplate, serviceChannels}) {
         []
     )
 
+    const templateBlueprint = useMemo(
+        () => (isTemplateCreating ? getNewTemplateBlueprint() : null),
+        [isTemplateCreating]
+    );
+
     const processCreatingRequest = useCallback(async (payload) => {
         setIsTemplateCreatingProcessing(true);
         
         await onCreateTemplate(payload);
 
-        setIsTemplateCreatingProcessing(true);
+        setIsTemplateCreatingProcessing(false);
         setIsTemplateCreating(false);
     }, [onCreateTemplate]);
     
@@ -67,7 +72,7 @@ export function CreateTemplateButton({onCreateTemplate, serviceChannels}) {
                 <span>Добавить шаблон</span>
             </Button>
             <TemplateModal
-                template={getNewTemplateBlueprint()}
+                template={templateBlueprint}
                 isModalOpen={isTemplateCreating}
                 handleClose={() => {setIsTemplateCreating(false)}}
                 onProcess={processCreatingRequest}
@@ -75,6 +80,7 @@ export function CreateTemplateButton({onCreateTemplate, serviceChannels}) {
                 headerName="Создание шаблона"
                 actionName="Создать"
                 serviceChannels={serviceChannels}
+                serviceType={serviceType}
             />
         </>
     ) 

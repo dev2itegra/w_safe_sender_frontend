@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Box } from "@mui/material";
 import clsx from "clsx";
 
@@ -13,8 +13,6 @@ export default function DigitalPipelineSettings({
     prevCustomSettings,
     onCustomSettingsUpdate,
 }) {
-    console.log(prevCustomSettings);
-
     const [customSettings, setCustomSettings] = useState(prevCustomSettings || {});
     
     const [isServicesLoading, setIsServicesLoading] = useState(false);
@@ -28,6 +26,7 @@ export default function DigitalPipelineSettings({
 
     const [isChannelsLoading, setIsChannelsLoading] = useState(false);
     const [serviceChannels, setServiceChannels] = useState([]);
+
 
     useEffect(() => {
         const loadServices = async () => {
@@ -44,6 +43,7 @@ export default function DigitalPipelineSettings({
                                 {
                                     id: s.id,
                                     name: s.name,
+                                    type: s.type,
                                 }
                             )
                         }
@@ -73,7 +73,7 @@ export default function DigitalPipelineSettings({
                     
                     const response = await baseApiInstance.get(`/services/${serviceId}/templates`);
                     const templates = response.data.templates;
-    
+
                     setTemplates(templates);
                     setSelectedTemplate(customSettings.template_id ?? "__unselected__");
                     setIsTemplatesLoading(false);
@@ -87,29 +87,34 @@ export default function DigitalPipelineSettings({
         loadTemplatesData();
     }, [serviceId]);
 
+    const serviceType = useMemo(() => {
+        return services.find(s => s.id === serviceId)?.type;
+    }, [serviceId, services]);
     
     useEffect(() => {
         const loadChannels = async () => {
-            try {
-                setIsChannelsLoading(true);
+            if ( serviceId && serviceId !== "__unselected__" && serviceType === "wazzup") {
+                try {
+                    setIsChannelsLoading(true);
+                    
+                    const response = await baseApiInstance.get(`/channels/service/${serviceId}`);
+                    if ( response.status === 200 ) {
+                        let channels = response.data.data.channels;
+                        setServiceChannels(channels);
+                    } else {
+                        throw new Error(`Unexpected response: ${response}`);
+                    }
                 
-                const response = await baseApiInstance.get(`/channels/service/${serviceId}`);
-                if ( response.status === 200 ) {
-                    let channels = response.data.channels;
-                    setServiceChannels(channels);
-                } else {
-                    throw new Error(`Unexpected response: ${response}`);
+                } catch (error) {
+                    console.error(error);
+                    sendAmoErrorNotification("Ошибка загрузки каналов");
+                } finally {
+                    setIsChannelsLoading(false);
                 }
-            
-            } catch (error) {
-                console.error(error);
-                sendAmoErrorNotification("Ошибка загрузки каналов");
-            } finally {
-                setIsChannelsLoading(false);
             }
         };
         loadChannels();
-    }, [serviceId]);
+    }, [serviceId, serviceType]);
 
 
     useEffect(() => {
@@ -158,6 +163,15 @@ export default function DigitalPipelineSettings({
     }, [onCustomSettingsUpdate]);
 
     
+    const currentChannel = useMemo(() => {
+        if ( serviceChannels && !!serviceChannels.length && selectedTemplate && selectedTemplate !== "__unselected__" ) {
+            const selectedTemplateData = templates.find((t) => t.id === selectedTemplate);
+            return serviceChannels.find((c) => c.channelId === selectedTemplateData.channel);
+        } else {
+            return null;
+        }
+    }, [serviceChannels, selectedTemplate])
+
     return (
         <Box 
             sx={{ 
@@ -193,6 +207,8 @@ export default function DigitalPipelineSettings({
                     serviceId && serviceId !== "__unselected__" && !isTemplatesLoading && selectedTemplate && selectedTemplate !== "__unselected__" &&
                     <TemplateOverview
                         template={templates.find((t) => String(t.id) === String(selectedTemplate))}
+                        channelName={currentChannel?.name}
+                        channelTransport={currentChannel?.transport}
                     />
                 }
             </Box>
