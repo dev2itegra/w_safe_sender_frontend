@@ -202,9 +202,7 @@ const Widget = (widget, Modal) => {
                             "/widget/activation", 
                             {
                                 phone_number: phoneNumber,
-                                account_id: APP.constant("account").id,
                             },
-                            { skipAuthToken: true },
                         );
 
                         if (response.status === 200) {
